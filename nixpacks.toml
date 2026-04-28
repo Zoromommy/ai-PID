@@ -1,0 +1,8 @@
+[phases.install]
+cmds = [
+  "pip install fastapi==0.111.0 uvicorn==0.29.0 numpy==1.26.4 joblib==1.4.2 scikit-learn==1.4.2 pydantic==2.7.1",
+  "pip install torch==2.3.0+cpu --extra-index-url https://download.pytorch.org/whl/cpu"
+]
+
+[start]
+cmd = "uvicorn main:app --host 0.0.0.0 --port $PORT"
