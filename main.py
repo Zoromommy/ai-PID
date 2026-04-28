@@ -252,5 +252,7 @@ async def startup_event():
 
 if __name__ == "__main__":
     import uvicorn
-    # Запуск на 0.0.0.0 делает сервер доступным для всех устройств в сети
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    import os
+    # PORT берётся из переменной окружения (Railway/Render) или 8000 по умолчанию
+    port = int(os.environ.get("PORT", 8000))
+    uvicorn.run(app, host="0.0.0.0", port=port)
