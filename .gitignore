@@ -1,0 +1,17 @@
+# ===================== БОЛЬШИЕ ФАЙЛЫ (>100MB — GitHub не примет) =====================
+lstm_dataset.npz
+pid_dataset_*.parquet
+
+# ===================== PYTHON КЭШ =====================
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyc
+.env
+.venv
+venv/
+
+# ===================== СИСТЕМНЫЕ =====================
+.DS_Store
+Thumbs.db
+desktop.ini

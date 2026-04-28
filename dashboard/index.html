@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Интеллектуальный PID-регулятор</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link rel="stylesheet" href="/static/style.css?v=15"/>
+</head>
+<body>
+  <div class="layout sidebar-hidden" id="layout">
+
+
+    <!-- MAIN -->
+    <main class="main">
+      <!-- PAGE: MAIN MENU -->
+      <div class="page active" id="page-home">
+        <div class="page-home-container">
+          <div class="page-header" style="text-align: center; margin-bottom: 48px;">
+            <div style="display: inline-flex; align-items: center; justify-content: center; width: 80px; height: 80px; background: linear-gradient(135deg, var(--accent), var(--accent2)); border-radius: 24px; margin-bottom: 24px; box-shadow: 0 15px 30px rgba(99, 102, 241, 0.4);">
+              <i data-lucide="cpu" style="width: 40px; height: 40px; color: white;"></i>
+            </div>
+            <h1 style="font-size: 42px; margin-bottom: 12px; font-weight: 800; letter-spacing: -1px;">AI Контроллер Печи</h1>
+            <p class="page-sub" style="font-size: 18px; color: var(--text2);">Интеллектуальная система управления и мониторинга процессов нового поколения</p>
+          </div>
+
+          <div class="menu-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 32px; margin-top: 48px; width: 100%; max-width: 1200px; padding: 0 20px;">
+            <div class="menu-card" data-target="telemetry" style="background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 40px; text-align: center; cursor: pointer; transition: transform 0.3s;">
+              <div class="menu-card-icon" style="margin-bottom: 20px; color: var(--accent);"><i data-lucide="radio" style="width: 48px; height: 48px;"></i></div>
+              <div class="menu-card-title" style="font-size: 24px; font-weight: 700; margin-bottom: 12px;">Телеметрия</div>
+              <div class="menu-card-desc" style="color: var(--text2); font-size: 15px;">Управление печью и графики в реальном времени</div>
+            </div>
+            <div class="menu-card" data-target="coefficients" style="background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 40px; text-align: center; cursor: pointer; transition: transform 0.3s;">
+              <div class="menu-card-icon" style="margin-bottom: 20px; color: var(--accent);"><i data-lucide="brain" style="width: 48px; height: 48px;"></i></div>
+              <div class="menu-card-title" style="font-size: 24px; font-weight: 700; margin-bottom: 12px;">Адаптация</div>
+              <div class="menu-card-desc" style="color: var(--text2); font-size: 15px;">Коэффициенты нейросетевого регулятора</div>
+            </div>
+            <div class="menu-card" data-target="metrics" style="background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 40px; text-align: center; cursor: pointer; transition: transform 0.3s;">
+              <div class="menu-card-icon" style="margin-bottom: 20px; color: var(--accent);"><i data-lucide="bar-chart-2" style="width: 48px; height: 48px;"></i></div>
+              <div class="menu-card-title" style="font-size: 24px; font-weight: 700; margin-bottom: 12px;">Аналитика</div>
+              <div class="menu-card-desc" style="color: var(--text2); font-size: 15px;">Анализ точности и сравнение с ПИД</div>
+            </div>
+            <div class="menu-card" data-target="consumption" style="background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 40px; text-align: center; cursor: pointer; transition: transform 0.3s;">
+              <div class="menu-card-icon" style="margin-bottom: 20px; color: var(--accent);"><i data-lucide="database" style="width: 48px; height: 48px;"></i></div>
+              <div class="menu-card-title" style="font-size: 24px; font-weight: 700; margin-bottom: 12px;">Ресурсы</div>
+              <div class="menu-card-desc" style="color: var(--text2); font-size: 15px;">Расход газа и кислорода в кубометрах</div>
+            </div>
+            <div class="menu-card" data-target="economics" style="background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 40px; text-align: center; cursor: pointer; transition: transform 0.3s;">
+              <div class="menu-card-icon" style="margin-bottom: 20px; color: var(--accent);"><i data-lucide="circle-dollar-sign" style="width: 48px; height: 48px;"></i></div>
+              <div class="menu-card-title" style="font-size: 24px; font-weight: 700; margin-bottom: 12px;">Экономика</div>
+              <div class="menu-card-desc" style="color: var(--text2); font-size: 15px;">Финансовая выгода и экономия газа</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- PAGE: TELEMETRY -->
+      <div class="page" id="page-telemetry">
+        <button class="btn-back" onclick="showPage('home')"><i data-lucide="arrow-left"></i> На главную</button>
+        <div class="page-header">
+          <h1>Интеллектуальный PID-регулятор</h1>
+          <p class="page-sub">Кислородно-факельная печь</p>
+        </div>
+
+        <div class="chart-card">
+          <div class="chart-card-header">
+            <span class="chart-title">Температура печи в реальном времени</span>
+            <div class="legend">
+              <span class="legend-item"><span class="dot ai"></span>Адаптивный регулятор</span>
+              <span class="legend-item"><span class="dot pid"></span>Классический ПИД</span>
+              <span class="legend-item"><span class="dot sp"></span>Уставка</span>
+              <span class="legend-item"><span class="dot" style="background:#facc15"></span>Граница (1500/1650°C)</span>
+              <span class="legend-item"><span class="dot" style="background:#4ade80"></span>Зона КФП (1550/1600°C)</span>
+            </div>
+          </div>
+          <div class="chart-wrapper"><canvas id="tempChart"></canvas></div>
+        </div>
+
+        <div class="metrics-grid">
+          <div class="metric-card">
+            <div class="metric-icon"><i data-lucide="thermometer"></i></div>
+            <div class="metric-body">
+              <div class="metric-label">Температура Адаптивная</div>
+              <div class="metric-value" id="m-ai-temp">— °C</div>
+            </div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-icon"><i data-lucide="target"></i></div>
+            <div class="metric-body">
+              <div class="metric-label">Температура ПИД</div>
+              <div class="metric-value" id="m-pid-temp">— °C</div>
+            </div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-icon"><i data-lucide="flame"></i></div>
+            <div class="metric-body">
+              <div class="metric-label">Расход газа (Адаптив.)</div>
+              <div class="metric-value" id="m-gas-flow">— м³/ч</div>
+            </div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-icon"><i data-lucide="wind"></i></div>
+            <div class="metric-body">
+              <div class="metric-label">Расход O₂ (Адаптив.)</div>
+              <div class="metric-value" id="m-oxy-flow">— м³/ч</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TELEMETRY ACTIONS -->
+        <div class="chart-card" style="margin-top: 24px; padding: 24px; display: flex; align-items: center; justify-content: space-between; gap: 24px;">
+          <div style="display: flex; gap: 12px;">
+            <button class="btn-primary" id="btn-toggle" style="min-width: 160px;">▶ ЗАПУСТИТЬ</button>
+            <button class="btn-secondary" id="btn-reset" style="min-width: 120px;">↺ СБРОС</button>
+          </div>
+          <div class="status-indicator" style="margin: 0; background: rgba(255,255,255,0.03); padding: 12px 20px; border-radius: 12px; border: 1px solid var(--border);">
+            <div class="status-dot" id="status-dot"></div>
+            <span id="status-text" style="font-weight: 500; font-size: 14px;">Остановлено</span>
+          </div>
+        </div>
+
+        <!-- NEW CONTROLS PANEL -->
+        <div class="controls-wrapper">
+          <div class="controls-wrapper-header">
+            <i data-lucide="sliders-horizontal"></i> Панель управления
+          </div>
+          <div class="controls-panel">
+            <div class="control-card">
+              <div class="control-label"><i data-lucide="settings"></i> Уставка (°C)</div>
+              <div class="setpoint-control">
+                <button class="sp-btn" id="sp-minus">−</button>
+                <span class="sp-value" id="sp-display">750</span>
+                <span class="sp-unit">°C</span>
+                <button class="sp-btn" id="sp-plus">+</button>
+              </div>
+            </div>
+            
+            <div class="control-card">
+              <div class="control-label"><i data-lucide="gauge"></i> Давление газа</div>
+              <div class="slider-group">
+                <div class="slider-header">
+                  <span style="color:var(--text2)">Множитель:</span>
+                  <span class="slider-val" id="gas-val">1.00</span>
+                </div>
+                <input type="range" class="slider" id="gas-press" min="0.7" max="1.4" step="0.05" value="1.0"/>
+              </div>
+            </div>
+
+            <div class="control-card">
+              <div class="control-label"><i data-lucide="gauge"></i> Давление O₂</div>
+              <div class="slider-group">
+                <div class="slider-header">
+                  <span style="color:var(--text2)">Множитель:</span>
+                  <span class="slider-val" id="oxy-val">1.00</span>
+                </div>
+                <input type="range" class="slider" id="oxy-press" min="0.7" max="1.5" step="0.05" value="1.0"/>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PAGE: COEFFICIENTS -->
+      <div class="page" id="page-coefficients">
+        <button class="btn-back" onclick="showPage('home')"><i data-lucide="arrow-left"></i> На главную</button>
+        <div class="page-header">
+          <h1>Коэффициенты Адаптивного</h1>
+          <p class="page-sub">Динамическая адаптация коэффициентов регулятора</p>
+        </div>
+        <div class="chart-card">
+          <div class="chart-card-header">
+            <span class="chart-title">Kp, Ki, Kd во времени</span>
+          </div>
+          <div class="chart-wrapper"><canvas id="gainChart"></canvas></div>
+        </div>
+        <div class="metrics-grid">
+          <div class="metric-card">
+            <div class="metric-icon"><i data-lucide="trending-up"></i></div>
+            <div class="metric-body">
+              <div class="metric-label">Пропорциональный Kp</div>
+              <div class="metric-value" id="kp-val">—</div>
+            </div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-icon"><i data-lucide="activity"></i></div>
+            <div class="metric-body">
+              <div class="metric-label">Интегральный Ki</div>
+              <div class="metric-value" id="ki-val">—</div>
+            </div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-icon"><i data-lucide="zap"></i></div>
+            <div class="metric-body">
+              <div class="metric-label">Дифференциальный Kd</div>
+              <div class="metric-value" id="kd-val">—</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PAGE: METRICS -->
+      <div class="page" id="page-metrics">
+        <button class="btn-back" onclick="showPage('home')"><i data-lucide="arrow-left"></i> На главную</button>
+        <div class="page-header">
+          <h1>Анализ качества регулирования</h1>
+          <p class="page-sub">Сравнение интегральных показателей Адаптивного регулятора и классического ПИД</p>
+        </div>
+
+        <!-- БЛОК ПРЕВОСХОДСТВА -->
+        <div class="superiority-block" id="superiority-block">
+          <div class="sup-label" id="sup-label">Запустите симуляцию для сравнения</div>
+          <div class="sup-value" id="sup-value">—</div>
+          <div class="sup-desc" id="sup-desc">Точность регулирования по ISE</div>
+        </div>
+        <div class="metrics-grid-2">
+          <div class="metric-card-big ai-card">
+            <div class="card-tag">АДАПТИВНЫЙ РЕГУЛЯТОР</div>
+            <div class="big-label">Суммарная ошибка (ISE)</div>
+            <div class="big-value" id="ise-ai">—</div>
+          </div>
+          <div class="metric-card-big pid-card">
+            <div class="card-tag">КЛАССИЧЕСКИЙ ПИД</div>
+            <div class="big-label">Суммарная ошибка (ISE)</div>
+            <div class="big-value" id="ise-pid">—</div>
+          </div>
+          <div class="metric-card-big ai-card">
+            <div class="card-tag">АДАПТИВНЫЙ РЕГУЛЯТОР</div>
+            <div class="big-label">Макс. отклонение</div>
+            <div class="big-value" id="dev-ai">—</div>
+          </div>
+          <div class="metric-card-big pid-card">
+            <div class="card-tag">КЛАССИЧЕСКИЙ ПИД</div>
+            <div class="big-label">Макс. отклонение</div>
+            <div class="big-value" id="dev-pid">—</div>
+          </div>
+        </div>
+        <div class="chart-card" style="margin-top:24px">
+          <div class="chart-card-header">
+            <span class="chart-title">Отклонение от уставки (°C)</span>
+          </div>
+          <div class="chart-wrapper" style="height:280px"><canvas id="errorChart"></canvas></div>
+        </div>
+      </div>
+
+      <!-- PAGE: CONSUMPTION -->
+      <div class="page" id="page-consumption">
+        <button class="btn-back" onclick="showPage('home')"><i data-lucide="arrow-left"></i> На главную</button>
+        <div class="page-header">
+          <h1>Расход газа и кислорода</h1>
+          <p class="page-sub">Накопительный итог расхода топлива Адаптивным регулятором и классическим ПИД</p>
+        </div>
+        <div class="chart-card" style="margin-top:24px">
+          <div class="chart-card-header">
+            <span class="chart-title">Журнал расхода (каждые 10 сек симуляции)</span>
+          </div>
+          <div style="max-height:500px; overflow-y:auto; padding: 0 16px; margin-bottom: 16px;">
+            <table class="consumption-table">
+              <thead>
+                <tr>
+                  <th>Время</th>
+                  <th>Газ Адаптив. (м³)</th>
+                  <th>O₂ Адаптив. (м³)</th>
+                  <th>Газ ПИД (м³)</th>
+                  <th>O₂ ПИД (м³)</th>
+                </tr>
+              </thead>
+              <tbody id="consumption-log">
+              </tbody>
+              <tfoot>
+                <tr>
+                  <th>ИТОГО (м³):</th>
+                  <th id="tot-gas-ai">0.00</th>
+                  <th id="tot-oxy-ai">0.00</th>
+                  <th id="tot-gas-pid">0.00</th>
+                  <th id="tot-oxy-pid">0.00</th>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- PAGE: ECONOMICS -->
+      <div class="page" id="page-economics">
+        <button class="btn-back" onclick="showPage('home')"><i data-lucide="arrow-left"></i> На главную</button>
+        <div class="page-header">
+          <h1>Экономический эффект</h1>
+          <p class="page-sub">Оценка финансовой выгоды от внедрения Адаптивного регулятора в реальном времени</p>
+        </div>
+
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+          <!-- AI Table -->
+          <div class="chart-card">
+            <div class="chart-card-header">
+              <span class="chart-title">Затраты Адаптивного (ИИ)</span>
+            </div>
+            <div style="max-height:400px; overflow-y:auto; padding: 0 16px; margin-bottom: 16px;">
+              <table class="consumption-table">
+                <thead>
+                  <tr>
+                    <th>Время</th>
+                    <th>Стоимость газа (UZS)</th>
+                  </tr>
+                </thead>
+                <tbody id="eco-log-ai"></tbody>
+                <tfoot>
+                  <tr>
+                    <th>ИТОГО:</th>
+                    <th id="eco-tot-ai" style="color:var(--ai)">0.00 UZS</th>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          </div>
+
+          <!-- PID Table -->
+          <div class="chart-card">
+            <div class="chart-card-header">
+              <span class="chart-title">Затраты Классического ПИД</span>
+            </div>
+            <div style="max-height:400px; overflow-y:auto; padding: 0 16px; margin-bottom: 16px;">
+              <table class="consumption-table">
+                <thead>
+                  <tr>
+                    <th>Время</th>
+                    <th>Стоимость газа (UZS)</th>
+                  </tr>
+                </thead>
+                <tbody id="eco-log-pid"></tbody>
+                <tfoot>
+                  <tr>
+                    <th>ИТОГО:</th>
+                    <th id="eco-tot-pid" style="color:var(--pid)">0.00 UZS</th>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="/static/app.js?v=15"></script>
+  <script>
+    lucide.createIcons();
+  </script>
+</body>
+</html>
